@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Income Tax Calculator</title>
+    <style>
+        /* --- General Styling --- */
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --background-color: #f0f2f5;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --light-text-color: #666;
+            --border-color: #e0e0e0;
+            --error-color: #d9534f;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        /* --- Main Container --- */
+        #app-container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--light-text-color);
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        /* --- Card Styling --- */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 25px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        /* --- Regime Selector --- */
+        .regime-selector {
+            display: flex;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .regime-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            background-color: transparent;
+            color: var(--light-text-color);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .regime-btn:first-child {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .regime-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* --- Input & Button --- */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        #annual-income {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        #calculate-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--secondary-color);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #calculate-btn:hover {
+            background-color: #e0930f;
+        }
+
+        /* --- Result & Error Display --- */
+        #result-container {
+            margin-top: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        #result-container h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--background-color);
+            padding-bottom: 10px;
+        }
+
+        #result-container p {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            margin: 12px 0;
+        }
+
+        #result-container p.total {
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--text-color);
+            margin-top: 15px;
+        }
+
+        .error {
+            color: var(--error-color);
+            font-weight: 500;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* --- Explanation Section --- */
+        .explanation h2 {
+            margin-top: 0;
+            color: var(--text-color);
+        }
+        .explanation p {
+            line-height: 1.6;
+            color: var(--light-text-color);
+        }
+        .explanation .note {
+            font-style: italic;
+            font-size: 14px;
+            padding: 10px;
+            background-color: #fdf8e8;
+            border-left: 3px solid var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <h1>Indian Income Tax Calculator</h1>
+        <p class="subtitle">For FY 2023-24 (AY 2024-25)</p>
+
+        <div class="card">
+            <div class="regime-selector">
+                <button id="new-regime-btn" class="regime-btn active">New Regime (Default)</button>
+                <button id="old-regime-btn" class="regime-btn">Old Regime</button>
+            </div>
+
+            <div class="input-group">
+                <label for="annual-income">Enter Your Gross Annual Income (₹)</label>
+                <input type="number" id="annual-income" placeholder="e.g., 800000" min="0">
+            </div>
+
+            <button id="calculate-btn">Calculate Tax</button>
+
+            <div id="result-container" class="hidden">
+                <h2>Tax Calculation</h2>
+                <p><span>Income Tax:</span> <span id="tax-amount"></span></p>
+                <p><span>Health & Education Cess (4%):</span> <span id="cess-amount"></span></p>
+                <hr>
+                <p class="total"><span>Total Tax Payable:</span> <span id="total-tax-amount"></span></p>
+            </div>
+            <div id="error-message" class="error hidden"></div>
+        </div>
+
+        <div class="card explanation">
+            <h2>Old vs. New Tax Regime: A Quick Look</h2>
+            <p><strong>Old Regime:</strong> Allows you to claim various deductions and exemptions (like HRA, LTA, and those under Section 80C, 80D, etc.). The tax slabs have higher rates but your taxable income can be reduced significantly with investments.</p>
+            <p><strong>New Regime (Default for FY 2023-24):</strong> Offers lower, more streamlined tax rates but you cannot claim most of the common deductions and exemptions. It provides a tax rebate for incomes up to ₹7 lakhs, making it simpler for those with fewer investments.</p>
+            <p class="note"><strong>Note:</strong> This calculator is for an individual below 60 years of age and does not account for deductions, exemptions, or surcharge. It is for illustrative purposes only.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const newRegimeBtn = document.getElementById('new-regime-btn');
+            const oldRegimeBtn = document.getElementById('old-regime-btn');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const incomeInput = document.getElementById('annual-income');
+            const resultContainer = document.getElementById('result-container');
+            const errorMsg = document.getElementById('error-message');
+            const taxAmountEl = document.getElementById('tax-amount');
+            const cessAmountEl = document.getElementById('cess-amount');
+            const totalTaxAmountEl = document.getElementById('total-tax-amount');
+
+            let currentRegime = 'new'; // 'new' or 'old'
+
+            // --- Event Listeners ---
+            newRegimeBtn.addEventListener('click', () => setRegime('new'));
+            oldRegimeBtn.addEventListener('click', () => setRegime('old'));
+            calculateBtn.addEventListener('click', calculateTax);
+
+            // --- Functions ---
+            function setRegime(regime) {
+                currentRegime = regime;
+                newRegimeBtn.classList.toggle('active', regime === 'new');
+                oldRegimeBtn.classList.toggle('active', regime === 'old');
+                resultContainer.classList.add('hidden'); // Hide result on regime change
+                errorMsg.classList.add('hidden');
+            }
+
+            function formatCurrency(amount) {
+                return `₹ ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            function calculateTax() {
+                const income = parseFloat(incomeInput.value);
+
+                // Input Validation
+                if (isNaN(income) || income < 0) {
+                    errorMsg.textContent = 'Please enter a valid positive income amount.';
+                    errorMsg.classList.remove('hidden');
+                    resultContainer.classList.add('hidden');
+                    return;
+                }
+
+                errorMsg.classList.add('hidden');
+
+                let tax = 0;
+                if (currentRegime === 'new') {
+                    // New Regime Calculation (FY 2023-24 / AY 2024-25)
+                    if (income <= 700000) {
+                        tax = 0; // Tax rebate under Section 87A
+                    } else if (income > 300000 && income <= 600000) {
+                        tax = (income - 300000) * 0.05;
+                    } else if (income > 600000 && income <= 900000) {
+                        tax = 15000 + (income - 600000) * 0.10;
+                    } else if (income > 900000 && income <= 1200000) {
+                        tax = 45000 + (income - 900000) * 0.15;
+                    } else if (income > 1200000 && income <= 1500000) {
+                        tax = 90000 + (income - 1200000) * 0.20;
+                    } else if (income > 1500000) {
+                        tax = 150000 + (income - 1500000) * 0.30;
+                    }
+                } else {
+                    // Old Regime Calculation (assuming no deductions)
+                    if (income <= 500000) {
+                        tax = 0; // Tax rebate under Section 87A
+                    } else if (income > 250000 && income <= 500000) {
+                        tax = (income - 250000) * 0.05;
+                    } else if (income > 500000 && income <= 1000000) {
+                        tax = 12500 + (income - 500000) * 0.20;
+                    } else if (income > 1000000) {
+                        tax = 112500 + (income - 1000000) * 0.30;
+                    }
+                }
+
+                const cess = tax > 0 ? tax * 0.04 : 0;
+                const totalTax = tax + cess;
+
+                // Display Results
+                taxAmountEl.textContent = formatCurrency(tax);
+                cessAmountEl.textContent = formatCurrency(cess);
+                totalTaxAmountEl.textContent = formatCurrency(totalTax);
+                resultContainer.classList.remove('hidden');
+            }
+        });
+    </script>
+
+</body>
+</html>
